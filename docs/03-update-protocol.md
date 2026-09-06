@@ -1,0 +1,130 @@
+# 03 — The update protocol and the gate that blocks custom packages
+
+Everything here is **[reported]**: aroum reverse-engineered the macOS updater
+binary; AL-255 captured the Windows updater under Wine with ALSA sequencer
+logging, decompiled its worker, disassembled the on-device loader, and
+byte-verified the framing (48/48 captured packets). AL-255's
+[`docs/io/11-ota-protocol.md`](https://github.com/AL-255/FM-1-RE/blob/main/docs/io/11-ota-protocol.md)
+is the authoritative reference; this is a summary with the parts that matter
+for an open firmware.
+
+## 1. Transport
+
+Everything runs over **USB-MIDI System Exclusive** while the stock application
+is running; there is no DFU, CDC or HID traffic. The device pulls the image from
+the host with read requests, the host only answers.
+
+| Mode | VID:PID | Name |
+| --- | --- | --- |
+| normal | `4C4A:C755` | "FM-1 Midi" composite (USB-MIDI + UAC1) |
+| OTA loader | `4D4A:4155` | "ota-FM-1" composite (USB-MIDI, unused HID) |
+
+## 2. Session flow
+
+1. **Identity query** host→device: `F0 00 32 45 00 00 00 40 7F F7`
+   (manufacturer/device header `00 32 45`, address `00 00 00`, item `0x40`,
+   command `0x7F` = get). Fuzzing all item ids showed the device answers
+   **only** item `0x40` (aroum).
+2. **Identity reply** 41 bytes: `F0 00 32 45 58 01 00 00 23 4D 5A 44 xx xx xx xx xx 00×21 40 05 F7`
+   (`58` = reply, `4D 5A 44 79` = `"MZDy"`; model and version are encoded
+   further in: model before `_`, a 20-byte field with ASCII `0` added per byte,
+   decimal suffix = version, e.g. `FM-1_014`).
+3. **Upgrade command** host→device, identical for both steps: `F0 22 24 35 7F F7`.
+4. **Step 1 — verification.** The running app pulls parts of the package with
+   read requests, checks them, writes a boot record (`FM-1_0xx` + `ota-`, a
+   JieLi `UPDATA_PARM`), and soft-resets into the OTA loader, which
+   re-enumerates as `4D4A:4155`. The host waits 2000 ms after the command,
+   answers requests with an 8000 ms receive timeout, and treats a request for
+   raw address `0xE0000000` (length 8, answered with `"success\0"`) as
+   "verification complete", then keeps the port open 3000 ms.
+5. **Step 2 — upgrade.** Identity query and upgrade command again; the loader
+   pulls the UFW header, the entry list (descending) and the bulk data
+   (ascending), erases and writes the **single** application layout, verifies
+   the flash, updates loader metadata, then requests `0xF0000000` (length 8)
+   and expects `"success\0"`. It then records the result and resets. The loader
+   tries the finish handshake at most four times and returns zero even if all
+   four fail (AL-255).
+6. **Post-reboot**: the host must re-query the identity and compare model and
+   version; the `0xF0000000` acknowledgement proves the loader reached the
+   post-write path, not that the new image boots.
+
+## 3. Read-request / response framing
+
+```
+device → host   F0 00 32 41 41 [f1:4][addr:4][len:4] F7
+host → device   F0 00 32 41 41 [f1:4][addr:4][len:4] [pack7(data + chk)] F7
+```
+
+- `f1`, `addr`, `len` are little-endian u32 sent as 4×7-bit groups
+  (`b0 | b1<<7 | b2<<14 | b3<<21`).
+- `len` = `(length << 4) | flashtype`; requests carry `f1 = 0`, responses
+  carry `f1 = length >> 4`.
+- Data is an 8→7-bit **LSB-first continuous bitstream** (7 wire bytes per 8
+  data bytes), holding `length + 1` bytes: the data plus one checksum byte
+  `chk = ~(flashtype + sum(data) + sum(addr_le4) + sum(length_le3)) & 0xFF`.
+- Requests address a *logical* image: the first 960 file bytes are 20 blocks of
+  `0x30` bytes each carrying `0x2F` payload bytes plus a marker; strip the
+  markers and append the rest of the file.
+
+Final acknowledgements use channel header `00 32 41 01`.
+
+## 4. The "syscmd" device-control family (normal mode, separate from OTA)
+
+Framing `[00 59][cmd:1][len:3 LE][payload][~sum(payload)]`, dispatched by
+`update_cmd_dispatch` with a 32-entry table (V13 `0x02026BC4`, V14
+`0x0202730E`) and a transport selector (0 = USB-MIDI unpacked path, 1 =
+Bluetooth event `0x72`):
+
+| cmd | behaviour |
+| --- | --- |
+| 17 / 18 | return fixed 27-byte / 13-byte records |
+| 21 | drain the common ring buffer |
+| 33–36 | call methods on one of eight callback objects (control / write / read / status shapes) — **object table population unknown** |
+| 48 | complete an armed transfer after token and length match — **copies memory** |
+| others | no-ops |
+
+AL-255's rule, adopted here: **do not send commands 33–36 or 48** to the only
+recoverable device until the callback table's population is understood.
+
+## 5. What blocks custom packages today
+
+AL-255 built structurally valid packages (`tools/build_fwsc.py`, valid CRCs,
+correct JLFS entries) and probed the step-1 verifier on hardware
+(2026-07-21). Findings:
+
+- The verifier refuses a package it judges a "no-op" against what is installed.
+  The first gate compares the incoming `cfg` entry header with the stored one;
+  flipping one padding byte in a nested entry name (changing the CRCs, not the
+  payload) got past it — the device went from 9 to 49 read requests.
+- The next stage loads `ota.bin` to the loader flash area as plaintext (up to
+  **19456 bytes**; larger payloads are truncated), the payload CRC passes, and
+  then a result handler still takes the error path because a notify byte
+  (`b[0x1C0E670+60]`) is left non-zero by an obfuscated check. Everything
+  obvious has been ruled out as the compared quantity: loader CRCs, entry
+  names, compressed and decompressed loader bytes, UFW header fields, the
+  `FM-1_0xx` string, build strings. A genuine `FM-1_014` package with a
+  *different application but the same loader* passes, so the check is not a
+  simple loader compare.
+- Stock packages work both ways: the bundled updater log shows an FM-1 on
+  version 10 downgrading to `FM-1_008` successfully.
+- Therefore the **stock update path is not a demonstrated recovery mechanism**
+  and has never installed a non-stock application. It also has no way to help
+  a device whose application no longer runs the update service.
+
+Two ways forward, both in docs/07 and docs/08: explain the check (with a
+recoverable device you can iterate freely, patch the verifier in the image, or
+read the notify code), or bypass the stock path entirely by flashing through
+the mask-ROM USB mode.
+
+## 6. Tools
+
+| Tool | Author | Status |
+| --- | --- | --- |
+| `tools/fm1_ota.py` (`scan`, `flash`) + `alsalib.py`/`alsaseq.py` + `99-jieli-fm1.rules` | AL-255 | byte-exact reimplementation of the client, 14 offline tests; post-2026-08 timing changes **not yet exercised on hardware** |
+| `fm1_flasher.py`, `fm1_sysex_scanner.py` | aroum | derived from the macOS updater; **never tested on hardware** |
+| `M-UPGRADE-FM1` (macOS/Windows) | M-VAVE | the stock, proven path; embeds one firmware version |
+| `scripts/extract_ota_loader.py`, `tools/build_fwsc.py` (branch `with-custom-firmware`) | AL-255 | package inspection and (experimental) building |
+
+Note for Linux hosts: ALSA raw MIDI is unusable while any sequencer client is
+subscribed, and PipeWire grabs MIDI inputs; use the sequencer interface (what
+RtMidi and M-UPGRADE use) or stop PipeWire's MIDI bridge for the session.

@@ -1,0 +1,12 @@
+# Never commit vendor firmware or extracted images; link to their sources instead.
+*.fwsc
+*.bin
+*.ufw
+*.exe
+*.app
+firmware-images/
+reference/
+scratch/
+__pycache__/
+*.pyc
+.DS_Store

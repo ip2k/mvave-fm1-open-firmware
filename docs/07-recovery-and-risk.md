@@ -1,0 +1,124 @@
+# 07 — Recovery paths, risk register, rules of engagement
+
+The single most important fact about this project: **until a full flash dump
+and a byte-identical restore have been demonstrated, every non-stock write to
+the FM-1 risks a permanent brick.** This document is the plan to remove that
+risk, ranked by how likely each path is to work and how invasive it is.
+
+## 1. Why recovery is hard on this device
+
+- One application bank (`NEW_FLASH_FS` single-backup configuration, no
+  double-bank keys in `isd_config.ini`) — AL-255.
+- No JTAG/UART header, no test pads, no recovery button — aroum, photos.
+- `RESET=PB01_08_0` is a long-press reset, `UPDATE_JUMP=0` selects the reset
+  path rather than a mask-ROM jump — AL-255.
+- The only vendor update path runs inside the stock application over
+  USB-MIDI; a device whose application does not boot cannot be updated that way.
+- The stock app exposes no console, CDC, factory mode or recovery chord —
+  AL-255's audit of V13/V14.
+
+## 2. Candidate recovery paths, ranked
+
+### 2.1 Mask-ROM USB boot via `USB_KEY` through the USB-C port — try first
+
+JieLi's mask ROM contains a USB bootloader ("UBOOT1.00"). Besides entering it
+when the flash fails to boot, the ROM watches for a special signal on the USB
+data lines at power-up **[reported: kagaimiq `isp/usb/usb-key.md`,
+`jl-uboot-tool/docs/how-to-enter-uboot.md`]**:
+
+- The key is the 16-bit value **`0x16EF`** (`0001 0110 1110 1111`), sent
+  MSB-first, one line as clock (data latched on the rising edge), the other as
+  data, at roughly **50 kHz** (not critical; reception is bit-banged in ROM),
+  repeated until the chip acknowledges by **pulling both D+ and D− low for
+  1–2 ms**.
+- **The two kagaimiq documents disagree on which line is clock.** `usb-key.md`
+  says D+ is clock and D− is data; `how-to-enter-uboot.md` says D− is clock and
+  D+ is data. Try both polarities.
+- After the ACK the chip pulls D+ up and measures **SOF pulses** to calibrate
+  its PLL, so the host bus must be quiet: use a dedicated USB 2.0 hub (an MTT
+  hub such as Terminus FE2.1 isolates per port) or a separate host controller,
+  and no other full/low-speed devices on it. Noise makes the ROM miscalculate
+  the clock, time out on the watchdog and boot from flash instead.
+- Then the chip enumerates as a **USB mass-storage device** (`4C4A:xx42`
+  pattern on other families; the WL82 PID is unknown) and speaks JieLi's SCSI
+  vendor protocol v2. `jl-uboot-tool` loads `wl82loader.bin` to
+  `0x1C02000` (with the "MengLi" memory cipher quirk) and can then read, write
+  and erase flash and run code (`jlrunner.py`). The vendor's `isd_download`
+  does the same (`-dev wl82 -boot 0x1c02000`).
+- Hardware needed: a small MCU dongle (RP2040, ESP32, Arduino) that bit-bangs
+  the key on the FM-1's D+/D−, senses the ACK with a **strong external pull-up
+  (< 4.7 kΩ)** because the chip's 15 kΩ pull-downs defeat MCU-internal pull-ups,
+  then hands the bus to the PC (USB mux, or a relay, or a manual re-plug within
+  the SOF window). The vendor sells exactly this as the "USB Updater" dongle
+  (AC6925B-based) — buying one from Taobao/AliExpress is a legitimate shortcut.
+- FM-1 specifics to check: power sequencing (does the SoC boot on USB power
+  with the slide switch off? the key must be present when the ROM starts), any
+  series resistors or ESD parts between the USB-C connector and the SoC, and
+  whether the battery keeps the chip powered so a "power-up" needs the switch.
+
+**Why this is the priority:** it needs no soldering, it is the vendor's own
+production flashing path, and the tooling already exists. Its only unknown is
+whether the AC791N's ROM honours the key on the FM-1's wiring. If it works,
+dump the whole 1 MB, verify the dump matches the stock package where it
+should, restore it, and dump again.
+
+### 2.2 Failed-boot fallback
+
+The ROM enters USB download mode by itself if the flash does not boot
+**[reported: kagaimiq]**. This is a safety net only *after* we can write flash:
+a custom firmware that deliberately invalidates its own header on a key combo,
+or a watchdog-backed failure counter that erases the app directory head, would
+guarantee a way back. It does not help a stock device.
+
+### 2.3 Software entry into ROM USB mode from a running custom app
+
+The SDK's `isd_config.ini` has `UPDATE_JUMP` (reset vs. jump to mask-ROM
+update) and the online config tool protocol has a "MaskROM-update entry"
+command; the SDK exposes functions to enter USB update mode. **Every custom
+firmware must include a robust, early, key-combo-triggered path into this
+mode plus a boot-failure counter** (AL-255's P0 "fail-open boot path"). The
+stock app has no reachable equivalent.
+
+### 2.4 `UART_KEY` / ISP / debug TAP over soldered wires
+
+If `USB_KEY` fails: the LQFP48 leads are solderable. The SDK ini comments name
+UART update pins `PB00`, `PB05`, `PA05` and debug-TAP options `PA9/PA10`,
+`PB1/PB2`, `PB6/PB7` (or the USB pins). kagaimiq documents `UART_KEY` and the
+ISP key. Requires the pinout from the AC7911B datasheet in the SDK and steady
+hands; still far better than nothing.
+
+### 2.5 External flash programmer
+
+Only if the flash is a discrete chip. No SPI flash package was identified in
+the photos, so probably not available.
+
+## 3. Risk register
+
+| Risk | Likelihood | Impact | Mitigation |
+| --- | --- | --- | --- |
+| Custom package bricks the only device | high if attempted before recovery | total loss of the unit | **do not flash non-stock before 2.1 is proven**; buy a second FM-1 or an AC791N dev board (JL_AC79_DevKit V1.0) for first experiments |
+| `USB_KEY` does not work on AC791N through the connector | medium | forces soldering (2.4) | try both clock/data polarities, quiet bus, dev-board rehearsal |
+| Wrong loader / wrong chip family in tooling | medium | corrupt flash | jl-uboot-tool marks WL82 "unknown": read-only operations first, compare dump with the stock package before any write |
+| Interrupted write (power loss, USB drop) | medium | unbootable app | battery charged, no hubs during writes, dump before every write |
+| Verifier gate never explained | medium | no cable-only install for users; development unaffected | ship a "one-time unlock" via dongle if needed; keep researching with a recoverable device |
+| Toolchain download disappears | low–medium | cannot build | archive the toolchain privately (do not publish) |
+| Legal complaint about redistributing vendor binaries | low | takedown | never commit `.fwsc`/`app.bin`; link to sources |
+| Bluetooth radio regulatory issues with custom firmware | low | none for personal use | keep vendor BT stack or disable BT |
+
+## 4. Rules of engagement (adopted from AL-255's safety review)
+
+1. No non-stock flash on any device without a proven dump-and-restore path for
+   that device.
+2. Keep `uboot.boot`, `ota.bin`, `cfg`, `isd_config.ini` and the partition
+   layout **byte-identical to stock** in any experimental package until the
+   loader checks are understood.
+3. Never send syscmd commands 33–36 or 48; never send the `5A AA A5` online-tool
+   erase/write commands blind.
+4. Every custom firmware carries a fail-open boot path (key combo → USB update
+   mode) and a watchdog-backed failure counter from day one.
+5. Test power loss and disconnects at every update stage on the recoverable
+   device before anyone else is told to flash anything.
+6. Read the stock identity (`FM-1_0xx`) from the device/package; never infer
+   version from filenames.
+7. Log everything on the bench: USB descriptors, SysEx traces, dumps with
+   SHA-256, photos of pin probes. Put them under `notes/`.
