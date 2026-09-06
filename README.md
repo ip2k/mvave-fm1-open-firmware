@@ -4,9 +4,11 @@ Research toward a fully open-source firmware for the M-VAVE (Cuvave) **FM-1**, a
 ~€70 battery-powered six-operator, 12-voice FM synthesizer with 27 silicone keys,
 a 1.54" colour TFT, USB-C (MIDI + audio), BLE-MIDI and a 3.5 mm MIDI input.
 
-> **Status (2026-09-06): research phase.** Nothing has been flashed, the device
-> has not been opened or probed by this project yet, and no custom code has ever
-> been shown to run on an FM-1 by anyone. Start with
+> **Status (2026-09-06): research phase; first read-only bench session done.**
+> Nothing has been flashed and the case has not been opened. The owner's unit
+> identifies as `FM-1_015`; V15 has been unpacked and compared with V14
+> ([`notes/2026-09-06-bench.md`](notes/2026-09-06-bench.md)). No custom code
+> has ever been shown to run on an FM-1 by anyone. Start with
 > [`docs/05-open-source-feasibility.md`](docs/05-open-source-feasibility.md) for
 > the verdict and [`docs/09-first-session-checklist.md`](docs/09-first-session-checklist.md)
 > for what to do with the device on the bench.
@@ -72,7 +74,10 @@ a 1.54" colour TFT, USB-C (MIDI + audio), BLE-MIDI and a 3.5 mm MIDI input.
 | [`docs/08-roadmap.md`](docs/08-roadmap.md) | Phased plan with exit criteria |
 | [`docs/09-first-session-checklist.md`](docs/09-first-session-checklist.md) | Exact commands for the first hands-on session |
 | [`tools/check_msfa_table.py`](tools/check_msfa_table.py) | Finds the msfa algorithm table in an `app.bin` (tested on V13 and V14) |
+| [`tools/extract_fwsc_from_updater.py`](tools/extract_fwsc_from_updater.py) | Carves the embedded `.fwsc` out of an M-UPGRADE updater binary (verified on the macOS DMG) |
+| [`tools/fm1_identify.py`](tools/fm1_identify.py) | Read-only identity query with decoder, any OS via mido (verified on hardware 2026-09-06) |
 | [`tools/fm1_identify.sh`](tools/fm1_identify.sh) | Read-only SysEx identity query via ALSA `amidi` (untested on hardware) |
+| [`notes/2026-09-06-bench.md`](notes/2026-09-06-bench.md) | Bench session 1: USB descriptors, identity reply, MIDI probes, V14 vs V15 |
 | [`notes/2026-09-06-research-log.md`](notes/2026-09-06-research-log.md) | What was checked, what was blocked, where the numbers come from |
 
 Confidence marks used throughout the docs: **[verified]** checked in this

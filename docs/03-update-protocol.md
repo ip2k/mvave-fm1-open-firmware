@@ -25,10 +25,16 @@ the host with read requests, the host only answers.
    (manufacturer/device header `00 32 45`, address `00 00 00`, item `0x40`,
    command `0x7F` = get). Fuzzing all item ids showed the device answers
    **only** item `0x40` (aroum).
-2. **Identity reply** 41 bytes: `F0 00 32 45 58 01 00 00 23 4D 5A 44 xx xx xx xx xx 00×21 40 05 F7`
-   (`58` = reply, `4D 5A 44 79` = `"MZDy"`; model and version are encoded
-   further in: model before `_`, a 20-byte field with ASCII `0` added per byte,
-   decimal suffix = version, e.g. `FM-1_014`).
+2. **Identity reply** 41 bytes **[verified 2026-09-06 on `FM-1_015`]**:
+   `F0 00 32 45 58 01 00 00 23 4D 5A 44 79 05 26 4C 1A 00×21 20 06 F7`.
+   Everything between `F0` and `F7`, the `00 32 45 58` header included, is the
+   7-bit LSB-first packing of a 34-byte JieLi ID block
+   `00 59 11 | len 27 | "FM-1_015" + zero padding | checksum` (the header
+   unpacks to exactly `00 59 11`; checksum = `~sum(body) & 0xFF`). The plain
+   field carries the whole `MODEL_NNN` identity. The second-field derivation in
+   AL-255's mirror of the updater's parser (bytes 14–33 plus ASCII `0`) yields
+   version 0 on this real reply, so parse the plain field;
+   `tools/fm1_identify.py` does.
 3. **Upgrade command** host→device, identical for both steps: `F0 22 24 35 7F F7`.
 4. **Step 1 — verification.** The running app pulls parts of the package with
    read requests, checks them, writes a boot record (`FM-1_0xx` + `ota-`, a
@@ -110,6 +116,12 @@ correct JLFS entries) and probed the step-1 verifier on hardware
 - Therefore the **stock update path is not a demonstrated recovery mechanism**
   and has never installed a non-stock application. It also has no way to help
   a device whose application no longer runs the update service.
+
+- **Stock packages change the layout.** V15 shrinks the app area by 0x1000 and
+  grows VM (docs/01 §2) while keeping `uboot.boot`, `ota.bin`, `cfg` and
+  `isd_config.ini` byte-identical to V14 [verified]; since V15 ships through
+  the stock path, a partition-boundary change by itself is not what the
+  verifier rejects [inferred].
 
 Two ways forward, both in docs/07 and docs/08: explain the check (with a
 recoverable device you can iterate freely, patch the verifier in the image, or

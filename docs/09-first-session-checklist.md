@@ -16,7 +16,7 @@ git clone https://github.com/kagaimiq/jl-misctools reference/jl-misctools
 git clone https://github.com/kagaimiq/jl-uboot-tool reference/jl-uboot-tool
 git clone https://github.com/kagaimiq/jielie reference/jielie
 python3 -m venv .venv && source .venv/bin/activate
-pip install crcmod mido python-rtmidi
+pip install crcmod pyyaml mido python-rtmidi
 ```
 
 `reference/` is git-ignored. Vendor firmware files are git-ignored too
@@ -34,6 +34,10 @@ shasum -a 256 scratch/FM-1_v15.fwsc
 cd scratch && python3 ../reference/jl-misctools/firmware/fwunpack_newfw.py FM-1_v15.fwsc && cd ..
 ls -la scratch/FM-1_v15.fwsc_unpack/top scratch/FM-1_v15.fwsc_unpack/files
 ```
+
+**2026-09-06 result:** the macOS DMG embeds V14 (`FM-1_014`), byte-identical to
+AL-255's package; V15 must be fetched from the CDN link in docs/02 §1. Details
+in `notes/2026-09-06-bench.md`.
 
 The extractor finds the package by its `JLUFW` trailer (16 bytes before the end
 of the `.fwsc`) and the Qt resource size prefix that precedes the data; it
@@ -88,6 +92,8 @@ The query is `F0 00 32 45 00 00 00 40 7F F7`; the reply is 41 bytes starting
   `python3 reference/FM-1-RE/tools/fm1_ota.py scan` — prints the decoded model
   and version. Hardware validation of its parser is one of AL-255's open items,
   so a working `scan` is itself a useful result to report upstream.
+- **`tools/fm1_identify.py`** (any OS, mido + python-rtmidi; prints and decodes
+  the reply; used on 2026-09-06, reply decoded to `FM-1_015`).
 - **`tools/fm1_identify.sh`** (Linux, ALSA raw MIDI via `amidi`). Note: raw
   MIDI is unavailable while PipeWire/JACK hold the port; stop them or use the
   next option.

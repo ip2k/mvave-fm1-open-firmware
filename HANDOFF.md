@@ -9,10 +9,12 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 - **Owner:** Sean (GitHub `ip2k`). Works from a MacBook with Claude Desktop /
   Claude Code; has **one FM-1** on his desk (do not brick it) and has downloaded
   the official updater disk image **`M-UPGRADE-FM1*.dmg` into `~/Downloads`**
-  (that updater embeds the newest firmware, expected V15 / `FM-1_015`).
+  (that updater embeds **V14**, not V15; V15 is only on the CDN, docs/02 §1).
 - **This repository** is the research output: nine documents, three tools, one
-  research log. Nothing has been run against the device yet. No custom code has
-  ever run on any FM-1 (by anyone).
+  research log, plus bench session 1 (`notes/2026-09-06-bench.md`): the unit
+  answers the identity query as `FM-1_015`, V15 is unpacked and diffed against
+  V14. Nothing has been written to the device. No custom code has ever run on
+  any FM-1 (by anyone).
 - **Where the repo lives now:** `~/Developer/mvave-fm1-firmware` on the
   owner's MacBook, branch `main`, remote `ip2k/mvave-fm1-open-firmware`. Moved there on
   2026-09-06 from the orphan branch `claude/mvave-fm1-open-firmware-ly2w6u` of
@@ -56,7 +58,8 @@ original conversation. Read this first, then `README.md`, then `docs/`.
    sequencer semantics, `seq-core` as a desktop test oracle.
 10. USB IDs: normal `4C4A:C755` ("FM-1 Midi" + "FM-1 Audio" UAC1), OTA
     `4D4A:4155`. Identity query `F0 00 32 45 00 00 00 40 7F F7` → 41-byte
-    reply `F0 00 32 45 58 01 00 00 23 4D 5A 44 …`.
+    reply `F0 00 32 45 58 01 00 00 23 4D 5A 44 …` (verified; the owner's unit
+   decodes to `FM-1_015`, see docs/03 §2).
 
 ## 3. Decisions taken
 
@@ -81,21 +84,21 @@ original conversation. Read this first, then `README.md`, then `docs/`.
    encoders + 2 ADC channels)?
 4. Flash: in-package or discrete, exact size (JEDEC ID)?
 5. AC791N variant and pinout; UART and debug-TAP pins reachable on LQFP48?
-6. What changed in V15 (extract from the updater; compare with V14)?
+6. Does the SoC enumerate on USB with the power switch off (needed for the
+   `USB_KEY` attempt)?
 7. Any GPL-only Dexed code in the stock image (licensing lever)?
 
 ## 5. Immediate next actions (in order)
 
 1. ~~Move the repo.~~ Done 2026-09-06: `~/Developer/mvave-fm1-firmware`,
    pushed to `ip2k/mvave-fm1-open-firmware`.
-2. Run `docs/09-first-session-checklist.md` §1: extract and unpack V15 from
-   `~/Downloads/M-UPGRADE-FM1*.dmg` with `tools/extract_fwsc_from_updater.py`
-   and kagaimiq's `fwunpack_newfw.py`; run `tools/check_msfa_table.py` on the
-   V15 `app.bin`; record identity, sizes, hashes, new strings in `notes/`.
-3. §2–§3: USB descriptors and the SysEx identity query (read-only).
+2. ~~docs/09 §1–§3.~~ Done 2026-09-06 (`notes/2026-09-06-bench.md`).
+3. Power-switch-off enumeration test (docs/09 §2, last paragraph) and the
+   case-open photo list (docs/09 §5).
 4. Decide on a `USB_KEY` dongle (buy JieLi's "USB Updater" dongle or build one
    on an RP2040) and, ideally, a JL_AC79_DevKit or a second FM-1 to rehearse on.
-5. Contact aroum and AL-255 (GitHub issues) with the V15 findings and the plan.
+5. Contact aroum and AL-255 (GitHub issues) with the V15 findings, the
+   identity-decode data point (docs/03 §2) and the plan.
 
 ## 6. Reference material already gathered (clone these locally)
 

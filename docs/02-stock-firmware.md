@@ -9,8 +9,8 @@ in docs/01.
 | Version (device identity) | Where it came from | Notes |
 | --- | --- | --- |
 | `FM-1_009` (package folder "V13", 2026-07-03) | `FM-1.fwsc` (704084 bytes) analysed by AL-255 | Full disassembly, byte-identical reassembly |
-| `FM-1_014` ("V14", updater dated 2026-07-06) | Embedded Qt resource in `M-UPGRADE-FM1.exe`; `FM-1.fwsc` 704052 bytes | `app.bin` 1888 bytes larger; `uboot.boot`, `cfg_tool.bin`, `ota.bin` byte-identical to V13. Adds MIDI program change per M-VAVE's video |
-| V15 (2026-07-30) | `https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/FM-1.fwsc` (aroum) | Adds glide, sequencer features, MIDI CC control per M-VAVE's video and Synth Anatomy; not yet analysed by anyone |
+| `FM-1_014` ("V14", updater dated 2026-07-06) | Embedded Qt resource in `M-UPGRADE-FM1.exe`; `FM-1.fwsc` 704052 bytes. **Also what the macOS `M-UPGRADE-FM1.dmg` downloaded 2026-09-06 embeds** (same 2026-07-08 build) [verified] | `app.bin` 1888 bytes larger; `uboot.boot`, `cfg_tool.bin`, `ota.bin` byte-identical to V13. Adds MIDI program change per M-VAVE's video |
+| `FM-1_015` ("V15", CDN file dated 2026-07-30) | `https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/firmware/FM-1.fwsc`; 699956 bytes, sha256 `db1642b2…db8a` | **Analysed here 2026-09-06** (`notes/2026-09-06-bench.md`) [verified]: `app.bin` 581564 bytes (3392 smaller than V14); `uboot.boot`, `isd_config.ini`, `cfg`, `cfg_tool.bin` and `ota.bin` byte-identical to V14; app area shrinks by 0x1000 and VM grows to 0x56000 at `0x93000`; msfa table at `0x8BE8C`; new strings for glide (`Fingered`/`Full Time`), three sequencer pages, two "Globe" pages, reordered OP pages, a patch `Rename` UI. Running on the owner's unit |
 
 The updater apps (`M-UPGRADE-FM1.app` on macOS, `M-UPGRADE-FM1.exe` on Windows)
 are Qt6 + RtMidi programs with the firmware embedded as a resource
@@ -151,6 +151,11 @@ checked and is not claimed here; it is listed as a research item in docs/08.
   with running status; MIDI-thru to the UART.
 - Note on/off with velocity, 12-voice allocation/stealing, CC 1/2/4/64, 14-bit
   pitch bend; program change from `FM-1_014`; CC control of parameters from V15.
+- **No read-back over MIDI [verified 2026-09-06]**: the device answers nothing
+  but the vendor identity query — no reply to DX7 dump requests
+  (`F0 43 20 09 F7`, `F0 43 20 00 F7`), none to the universal identity request
+  (`F0 7E 7F 06 01 F7`), no spontaneous traffic (no clock, no active sensing).
+  Patch retrieval therefore needs the UI-triggered dump, if any [inferred].
 - **DX7 SysEx**: 32-voice bulk dump `F0 43 0n 09 20 00 … (4096 bytes) … F7`
   with checksum, single voice `F0 43 0n 00 1B …`, 7-byte parameter changes into
   the edit buffer. This is how fm1-editor.com and DX7 `.syx` banks work.
