@@ -9,14 +9,14 @@ Works on macOS or Linux; commands are given for both where they differ.
 ## 0. Set up a workspace
 
 ```bash
-mkdir -p ~/code && cd ~/code
-git clone <this repo> mvave-fm1-open-firmware && cd mvave-fm1-open-firmware
+cd ~/Developer/mvave-fm1-firmware
 git clone https://github.com/AL-255/FM-1-RE reference/FM-1-RE
 git clone https://github.com/aroum/fm1-custom-fw reference/fm1-custom-fw
 git clone https://github.com/kagaimiq/jl-misctools reference/jl-misctools
 git clone https://github.com/kagaimiq/jl-uboot-tool reference/jl-uboot-tool
 git clone https://github.com/kagaimiq/jielie reference/jielie
-python3 -m pip install --user crcmod mido python-rtmidi
+python3 -m venv .venv && source .venv/bin/activate
+pip install crcmod mido python-rtmidi
 ```
 
 `reference/` is git-ignored. Vendor firmware files are git-ignored too

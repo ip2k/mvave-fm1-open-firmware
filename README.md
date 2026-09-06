@@ -80,21 +80,16 @@ project against binaries, photos or SDK files; **[reported]** taken from a
 named source and not independently re-checked; **[inferred]** our reading of
 the evidence.
 
-## Moving this to its own repository
+## Repository history
 
-This project was started from a Claude Code session that could not create
-GitHub repositories (the integration returned `403`), so it lives on an
-**orphan branch** of `ip2k/busybar-dual-timer` with no shared history. To move
-it, create an empty repository on GitHub (no README), then:
+The research phase was produced in a Claude Code cloud session that could not
+create GitHub repositories (the integration returned `403`), so its first
+commit briefly lived on an orphan branch of `ip2k/busybar-dual-timer`. On
+2026-09-06 that branch was cloned into `~/Developer/mvave-fm1-firmware` as this
+repository's `main`, published as `ip2k/mvave-fm1-open-firmware`. The stray
+branch can then be deleted:
 
 ```bash
-git clone --branch claude/mvave-fm1-open-firmware-ly2w6u --single-branch \
-    https://github.com/ip2k/busybar-dual-timer mvave-fm1-open-firmware
-cd mvave-fm1-open-firmware
-git branch -m main
-git remote set-url origin git@github.com:ip2k/mvave-fm1-open-firmware.git
-git push -u origin main
-# finally, remove the branch from busybar-dual-timer
 git push https://github.com/ip2k/busybar-dual-timer --delete claude/mvave-fm1-open-firmware-ly2w6u
 ```
 

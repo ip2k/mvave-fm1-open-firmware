@@ -13,12 +13,12 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 - **This repository** is the research output: nine documents, three tools, one
   research log. Nothing has been run against the device yet. No custom code has
   ever run on any FM-1 (by anyone).
-- **Where the repo lives right now:** on an **orphan branch**
-  `claude/mvave-fm1-open-firmware-ly2w6u` of `ip2k/busybar-dual-timer`, because
-  the session's GitHub integration could not create repositories (`403`). It
-  shares no history with busybar and must move to its own repository — see
-  `README.md` → "Moving this to its own repository". Suggested name:
-  `ip2k/mvave-fm1-open-firmware`.
+- **Where the repo lives now:** `~/Developer/mvave-fm1-firmware` on the
+  owner's MacBook, branch `main`, remote `ip2k/mvave-fm1-open-firmware`. Moved there on
+  2026-09-06 from the orphan branch `claude/mvave-fm1-open-firmware-ly2w6u` of
+  `ip2k/busybar-dual-timer`, which the cloud session used because its GitHub
+  integration could not create repositories. Delete that branch once a remote
+  exists — see `README.md` → "Repository history".
 - **Unrelated to the BUSY Bar project.** Do not mix the two.
 
 ## 2. The ten facts that matter
@@ -86,7 +86,8 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 
 ## 5. Immediate next actions (in order)
 
-1. Move the repo (README instructions). Start a fresh Claude project in it.
+1. ~~Move the repo.~~ Done 2026-09-06: `~/Developer/mvave-fm1-firmware`,
+   pushed to `ip2k/mvave-fm1-open-firmware`.
 2. Run `docs/09-first-session-checklist.md` §1: extract and unpack V15 from
    `~/Downloads/M-UPGRADE-FM1*.dmg` with `tools/extract_fwsc_from_updater.py`
    and kagaimiq's `fwunpack_newfw.py`; run `tools/check_msfa_table.py` on the
@@ -120,7 +121,7 @@ madushan.caas.lk blog post.
 Paste this as the first message of the new project (adjust paths):
 
 > This project is the open-source firmware effort for the M-VAVE FM-1 FM
-> synthesizer. The repository (`~/code/mvave-fm1-open-firmware`) contains a
+> synthesizer. The repository (`~/Developer/mvave-fm1-firmware`) contains a
 > completed research phase: read `HANDOFF.md`, then `README.md`, then
 > `docs/01`–`09` and `CLAUDE.md`. Rules: the FM-1 on my desk is the only unit;
 > nothing may be flashed or sent to it beyond the read-only identity query
