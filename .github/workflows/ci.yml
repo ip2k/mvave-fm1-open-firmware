@@ -1,0 +1,82 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  python-tests:
+    name: tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -v
+
+  dongle-firmware:
+    name: dongle firmware (RP2040 UF2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ARM toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build gcc-arm-none-eabi \
+            libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib build-essential
+      - name: Fetch pico-sdk 2.1.1
+        run: |
+          git clone --depth 1 --branch 2.1.1 https://github.com/raspberrypi/pico-sdk "$HOME/pico-sdk"
+          git -C "$HOME/pico-sdk" submodule update --init --depth 1 lib/tinyusb
+      - name: Build
+        env:
+          PICO_SDK_PATH: /home/runner/pico-sdk
+        run: |
+          cmake -S dongle/firmware -B dongle/firmware/build -G Ninja
+          cmake --build dongle/firmware/build
+          ls -la dongle/firmware/build/usb_key_dongle.uf2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: usb_key_dongle-uf2
+          path: |
+            dongle/firmware/build/usb_key_dongle.uf2
+            dongle/firmware/build/usb_key_dongle.elf.map
+
+  upstream-fm1-re:
+    name: AL-255/FM-1-RE tests on fork branch (${{ matrix.ref }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: [main, firmware-images-v15]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ip2k/FM-1-RE
+          ref: ${{ matrix.ref }}
+          path: fm1-re
+          submodules: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libasound2t64 || sudo apt-get install -y --no-install-recommends libasound2
+      - run: pip install crcmod pyyaml
+      - name: Unit tests
+        working-directory: fm1-re
+        run: python -m unittest discover -s tools/tests -v
+      - name: Reproduce the V15 unpack from the committed package
+        if: matrix.ref == 'firmware-images-v15'
+        working-directory: fm1-re/firmware-images/v15
+        run: |
+          sha256sum -c SHA256SUMS
+          tmp=$(mktemp -d); cp raw_fw/FM-1.fwsc "$tmp/"
+          python3 ../../3rd-party/jl-misctools/firmware/fwunpack_newfw.py "$tmp/FM-1.fwsc" > /dev/null
+          diff -r "$tmp/FM-1.fwsc_unpack" raw_fw/FM-1.fwsc_unpack && echo "unpack reproduced byte for byte"

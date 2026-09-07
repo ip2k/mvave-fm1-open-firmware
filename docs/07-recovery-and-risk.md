@@ -16,10 +16,18 @@ risk, ranked by how likely each path is to work and how invasive it is.
   USB-MIDI; a device whose application does not boot cannot be updated that way.
 - The stock app exposes no console, CDC, factory mode or recovery chord —
   AL-255's audit of V13/V14.
+- Partial safety net [reported: Echomatter, 2026-09-04]: a *running*
+  non-stock build that keeps the stock update service reachable can be
+  overwritten with a stock package (their `FM-1_016` build with a broken USB
+  descriptor was still recoverable through a Windows descriptor filter).
+  A build that does not boot, or whose USB or update service is dead, is not.
 
 ## 2. Candidate recovery paths, ranked
 
 ### 2.1 Mask-ROM USB boot via `USB_KEY` through the USB-C port — try first
+
+The dongle for this is specified, implemented and simulated in docs/10 and
+`dongle/`; the bench procedure is docs/10 §6.
 
 JieLi's mask ROM contains a USB bootloader ("UBOOT1.00"). Besides entering it
 when the flash fails to boot, the ROM watches for a special signal on the USB

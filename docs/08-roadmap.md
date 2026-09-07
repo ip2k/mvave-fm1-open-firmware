@@ -24,9 +24,10 @@ Detailed commands in docs/09.
 
 ## Phase 2 — Recovery
 
-- Build or buy a `USB_KEY` dongle; rehearse on an AC791N dev board if one can
-  be bought (JL_AC79_DevKit V1.0 on Taobao), otherwise proceed carefully on
-  the FM-1.
+- Build the RP2040 `USB_KEY` dongle from docs/10 (firmware in `dongle/`, UF2
+  from CI, logic tested against a ROM model); rehearse on an AC791N dev board
+  if one can be bought (JL_AC79_DevKit V1.0 on Taobao), otherwise proceed
+  carefully on the FM-1 following docs/10 §6.
 - Reach `UBOOT1.00`; record VID:PID, the SCSI inquiry string, the exact key
   polarity and timing that worked, the power-switch sequence.
 - Extend `jl-uboot-tool` for wl82 if needed (read-only first): chip ID, flash
@@ -73,9 +74,11 @@ Detailed commands in docs/09.
 
 ## Phase 6 — Distribution
 
-- Explain and pass the stock verifier gate so stock units can install the open
-  firmware over USB-MIDI with a small cross-platform tool (start from AL-255's
-  `fm1_ota.py` and `build_fwsc.py`); alternatively publish the dongle design
+- Pass the stock verifier gate so stock units can install the open firmware
+  over USB-MIDI: Echomatter showed (2026-09-04) that a package with a bumped
+  version identity is accepted, so the remaining work is a small
+  cross-platform client (start from AL-255's `fm1_ota.py` with PR #2's
+  framing fix and `build_fwsc.py`); alternatively publish the dongle design
   and a "one-time unlock".
 - Reversible: the tool must restore stock (users keep their `.fwsc`).
 - Release process, versioning, changelog; coordinate with aroum and AL-255.

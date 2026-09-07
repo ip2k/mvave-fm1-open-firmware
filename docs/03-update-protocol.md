@@ -56,6 +56,16 @@ the host with read requests, the host only answers.
 
 ## 3. Read-request / response framing
 
+**Corrected by Echomatter (AL-255 PR #2, 2026-09-04, verified on hardware):**
+the whole message is one 7-bit LSB-first bitstream between `F0` and `F7`,
+built as `00 59 30 | body_len:u24 | flashtype:u8 | addr:u32 | length:u24 |
+data | checksum`, with `body_len = 8` for requests and `length + 8` for
+responses and `checksum = ~sum(flashtype … data) & 0xFF`. The device requires
+`body_len + 7 == decoded length` before dispatching. The fixed `00 32 41 41`
+prefix below is what that stream happens to look like for aligned 512-byte
+blocks; for the final partial block (481 bytes) it encodes the wrong length and
+the device silently drops the reply, which is what had blocked their recovery.
+
 ```
 device → host   F0 00 32 41 41 [f1:4][addr:4][len:4] F7
 host → device   F0 00 32 41 41 [f1:4][addr:4][len:4] [pack7(data + chk)] F7
@@ -113,6 +123,16 @@ correct JLFS entries) and probed the step-1 verifier on hardware
   simple loader compare.
 - Stock packages work both ways: the bundled updater log shows an FM-1 on
   version 10 downgrading to `FM-1_008` successfully.
+- **A rebuilt package with a bumped version identity is accepted [reported:
+  Echomatter, AL-255 PR #2, 2026-09-04].** They derived a package from stock
+  V15, changed its identity to `FM-1_016` (keeping V15's identity checksum,
+  which shows the ID block is a literal in the image), and the stock updater
+  installed it; the modified build ran with a broken USB configuration
+  descriptor and was rolled back to stock V15 over USB-MIDI with AL-255's
+  client once its partial-block framing was fixed. So the "no-op" gate is
+  version-based host/verifier policy, not a device fuse, and a running
+  application with a live update service can always be overwritten by a
+  stock package. This is not recovery for an application that does not run.
 - Therefore the **stock update path is not a demonstrated recovery mechanism**
   and has never installed a non-stock application. It also has no way to help
   a device whose application no longer runs the update service.

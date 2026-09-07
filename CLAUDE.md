@@ -7,7 +7,10 @@ Guidance for Claude Code working in this repo.
 Research and, later, code toward an open-source firmware for the **M-VAVE FM-1**
 (JieLi AC791N SoC, pi32v2 CPU, msfa/Dexed FM engine). Status: **research phase
 complete; one read-only bench session done (`notes/2026-09-06-bench.md`);
-nothing flashed.** The owner's unit runs `FM-1_015`. `HANDOFF.md` is the context summary; `README.md`
+nothing flashed.** The owner's unit runs `FM-1_015`. The `USB_KEY` recovery
+dongle (docs/10, `dongle/`) is implemented and simulated, not yet tried.
+Elsewhere, Echomatter ran a version-bumped V15-derived package on their FM-1
+via the stock OTA path and rolled it back (AL-255 PR #2, 2026-09-04). `HANDOFF.md` is the context summary; `README.md`
 has the verdict; `docs/` has the detail.
 
 This project is unrelated to the BUSY Bar timer repo it was briefly hosted in.
@@ -41,6 +44,7 @@ python3 tools/check_msfa_table.py path/to/app.bin            # msfa table finder
 python3 tools/extract_fwsc_from_updater.py M-UPGRADE-FM1 -o FM-1.fwsc   # carve package from the updater
 python3 reference/jl-misctools/firmware/fwunpack_newfw.py FM-1.fwsc     # unpack (needs: pip install crcmod)
 python tools/fm1_identify.py                                   # read-only identity query + decode, any OS (verified on hardware)
+python -m pytest                                               # tools, PIO emulation and dongle/ROM co-simulation tests
 tools/fm1_identify.sh                                          # Linux, ALSA raw MIDI, read-only, untested
 python3 reference/FM-1-RE/tools/fm1_ota.py scan                # AL-255's client, read-only scan
 ```

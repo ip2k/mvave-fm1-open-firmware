@@ -1,0 +1,38 @@
+; usb_key.pio - JieLi USB_KEY bit-bang and SOF pulse generator for the RP2040.
+;
+; Both programs treat their pins as OPEN-DRAIN: the pin output value is latched
+; at 0 and only the pin DIRECTION is toggled. pindir 1 = drive low,
+; pindir 0 = release (the external 2.2 k pull-up, or the target's own pull-up,
+; sets the line high). Nothing here ever drives a line high.
+
+.program usb_key
+; OUT pin 0 = DATA line, SET pin 0 = CLOCK line.
+; One TX FIFO word = one 16-bit key packet in the TOP 16 bits, MSB first,
+; INVERTED (1 = drive low), so "out pindirs, 1" produces the level directly.
+; Shift direction: left. Autopull: off. Clock: 1 MHz (1 cycle = 1 us).
+; Per bit: clock low 8 cycles (data changes 3 cycles after the falling edge),
+; clock released 12 cycles (rising edge = sample point) => 20 cycles = 50 kHz.
+.wrap_target
+    pull block                 ; wait for the next packet word (stall = gap)
+    set x, 15                  ; 16 bits
+bitloop:
+    set pindirs, 1      [2]    ; clock driven low                (3 cycles)
+    out pindirs, 1      [4]    ; data valid while clock is low   (5 cycles)
+    set pindirs, 0      [10]   ; clock released: rising edge     (11 cycles)
+    jmp x-- bitloop            ;                                  (1 cycle)
+    mov osr, null              ; release the data line
+    out pindirs, 1
+.wrap
+
+.program sof_pulse
+; SET pin 0 = D+ line. Emits a 4-cycle low pulse every 1000 cycles (1.000 ms at
+; a 1 MHz PIO clock). The chip counts the falling edges to calibrate its PLL.
+.wrap_target
+    set pindirs, 1      [3]    ; drive low                        (4 cycles)
+    set pindirs, 0             ; release                          (1 cycle)
+    set x, 30                  ;                                  (1 cycle)
+delay:
+    nop                 [30]   ;                                  (31 cycles)
+    jmp x-- delay              ; 31 iterations x 32 cycles = 992  (1 cycle)
+    nop                 [1]    ; pad                              (2 cycles)
+.wrap                          ; total 4 + 1 + 1 + 992 + 2 = 1000

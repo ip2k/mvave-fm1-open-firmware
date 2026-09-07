@@ -53,6 +53,13 @@ experimental firmware and package builders.
   quarantined `legacy-uboot` scripts. Built with the real JieLi Linux toolchain.
   **Not flash-ready**; last device test stopped at the `0xE0000000` signal with
   stock still installed.
+- **PR #2 by Echomatter (2026-09-05, open):** fixes the partial-block
+  response framing, adds the plain V15 identity parse, and documents a
+  hardware-verified rollback from a modified `FM-1_016` package to stock V15
+  over USB-MIDI (`docs/io/12-v15-reflash-proof.md`, redacted request record,
+  `tools/verify_reflash_record.py`, 27 tests). First non-stock package known to
+  have run on an FM-1. Our 2026-09-06 identity capture decodes correctly with
+  its parser and not with `main`'s.
 - Toolchain notes: `jieli-linux-toolchains-*` = Clang/LLVM 4.0.1 with
   `pi32`/`pi32v2`/`q32s` backends from `https://pkgman.jieliapp.com/s/linux-toolchain`;
   post-build tools from `.../s/linux-postbuild`. The vendor objdump decodes the

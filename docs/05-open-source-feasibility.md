@@ -65,9 +65,14 @@ platform for features M-VAVE will never ship.
 
 ### 3.2 The verifier gate
 
-The stock step-1 verifier refuses rebuilt packages for an unexplained reason
-(docs/03 §5). This blocks *user-friendly* installation over USB-MIDI, not
-development: with mask-ROM access the whole flash can be written directly.
+The stock step-1 verifier refuses rebuilt packages that do not bump the
+version identity; a V15-derived package identifying as `FM-1_016` was accepted
+and ran (Echomatter, 2026-09-04, docs/03 §5). Cable-only installation of an
+open firmware is therefore plausible as long as the package carries a higher
+version and keeps the stock loader path. It is still not a development
+workflow: a build that does not boot, or that loses its USB descriptor or
+update service, cannot be replaced this way. With mask-ROM access the whole
+flash can be written directly.
 Explaining the gate becomes much easier once a device can be freely
 re-flashed and its RAM inspected (`jlrunner.py` can execute code and read
 memory in UBOOT mode).
@@ -119,7 +124,7 @@ carry effects in float.
 
 | Question | Answer |
 | --- | --- |
-| Can custom code run on the FM-1? | Almost certainly yes, via the mask-ROM USB flash path or eventually via the OTA path. Not yet demonstrated by anyone. |
+| Can custom code run on the FM-1? | **Yes, demonstrated 2026-09-04**: a modified V15-derived package with a bumped version identity was installed through the stock OTA path and ran (Echomatter, AL-255 PR #2). The mask-ROM path remains undemonstrated. |
 | Can it be sound-compatible with stock? | Yes: same msfa engine, same DX7 patch format. |
 | Can it be fully open source? | The application, bootloader and (with work) drivers can be. The compiler and the Bluetooth stack cannot in any foreseeable timeframe without a dedicated compiler/BLE effort. |
 | Is it safe to start hacking on the one device we have? | **Not until recovery is proven.** First milestone is a full flash dump and a byte-identical restore. |

@@ -35,12 +35,17 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 3. Update = **USB-MIDI SysEx**, device-pull protocol, **CRC16 only, no
    signature**, chip key `0x980F` in the package. Two stages: verifier in the
    app → reboot into a RAM OTA loader (`4D4A:4155`) → flash write → reset.
-4. **Rebuilt packages are rejected** by the app-side verifier at an unexplained
-   check (AL-255, on hardware, 2026-07-21). Stock packages, including
-   downgrades, pass.
+4. **Rebuilt packages are rejected** by the app-side verifier unless their
+   version identity is bumped: AL-255's 2026-07-21 probes failed at an
+   unexplained check, but Echomatter (AL-255 PR #2, 2026-09-04) installed a
+   V15-derived package identifying as `FM-1_016` through the stock path, ran
+   it, and rolled back to stock V15 with the corrected Linux client. Stock
+   packages, including downgrades, pass.
 5. **No proven recovery path**: single flash bank, no debug pads/buttons,
    mask-ROM USB boot never demonstrated on an FM-1. AL-255's verdict:
-   NO-GO for non-stock flashing. This is the gate for everything.
+   NO-GO for non-stock flashing. This is the gate for everything. The
+   `USB_KEY` dongle that should open it is specified and implemented
+   (docs/10, `dongle/`), not yet tried.
 6. Most promising recovery: JieLi **`USB_KEY`** (`0x16EF` bit-banged on D+/D−
    at ~50 kHz at power-up, ACK = both lines low 1–2 ms, then SOF clock
    detection) → mask-ROM "UBOOT1.00" mass-storage mode → `jl-uboot-tool`
@@ -95,7 +100,8 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 2. ~~docs/09 §1–§3.~~ Done 2026-09-06 (`notes/2026-09-06-bench.md`).
 3. Power-switch-off enumeration test (docs/09 §2, last paragraph) and the
    case-open photo list (docs/09 §5).
-4. Decide on a `USB_KEY` dongle (buy JieLi's "USB Updater" dongle or build one
+4. Build the `USB_KEY` dongle from docs/10 (CI publishes the UF2), then run
+   its bench procedure (docs/10 §6). Previously: decide on a `USB_KEY` dongle (buy JieLi's "USB Updater" dongle or build one
    on an RP2040) and, ideally, a JL_AC79_DevKit or a second FM-1 to rehearse on.
 5. Contact aroum and AL-255 (GitHub issues) with the V15 findings, the
    identity-decode data point (docs/03 §2) and the plan.
