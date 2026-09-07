@@ -218,8 +218,9 @@ one line per transition with microsecond timestamps.
    scope or logic analyser on D+/D−, confirm the 50 kHz packets and the
    ~160 µs gaps (optional but cheap insurance).
 2. Connect the HOST port to the Linux PC and the FM-1 (**switched off**) to
-   the TARGET port with a USB-A→C cable. Note whether the FM-1 shows any sign
-   of USB power (docs/01 §6 item 6 is still open).
+   the TARGET port with a USB-A→C cable. A switched-off FM-1 does not
+   enumerate on USB power [verified 2026-09-06], so nothing should appear on
+   the PC yet.
 3. Start keying (default: alternating polarity, `SOF_MODE_DONGLE`). Switch the
    FM-1 on. Expected within a second: `ACK polarity=<A|B> packets=<n>`, then
    `D+ high`, `SOF pulses`, `D+ released after <n> pulses`, `bus → PC`, and
@@ -262,11 +263,11 @@ and whether VBUS alone powers the SoC. Those are §6.
 | --- | --- |
 | Pin polarity (which line is clock) | unknown; both implemented |
 | Does the ROM listen continuously or only briefly at power-up? | unknown; alternate mode assumes continuous, fixed mode covers the other case |
-| Does the FM-1 SoC start on VBUS with the switch off? | unknown (docs/01 §6) |
+| Does the FM-1 SoC start on VBUS with the switch off? | **No** [verified 2026-09-06]: with the switch off the unit is absent from USB (no device node, no MIDI port, no identity reply). Power-up is the switch; no VBUS load switch needed |
 | Series/ESD parts between the USB-C receptacle and the SoC | unknown; 2.2 kΩ pull-ups tolerate a few hundred ohms in series |
 | WL82 `UBOOT1.00` VID:PID and inquiry string | unknown; jl-uboot-tool marks WL82 "unknown" — read-only commands first |
 | MengLi cipher / loader block size for wl82 | from `usb-loaders.yaml` [reported] |
-| Battery keeps the SoC powered while "off" | if so, the key must be present at the moment the switch is thrown; the dongle keys continuously, so this only matters for how the power-up is sequenced |
+| Battery keeps the SoC powered while "off" | No: the USB device disappears within seconds of switching off [verified 2026-09-06]. The key must be present when the switch is thrown; the dongle keys continuously |
 
 ## 9. Sources
 

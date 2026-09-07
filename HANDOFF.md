@@ -89,8 +89,9 @@ original conversation. Read this first, then `README.md`, then `docs/`.
    encoders + 2 ADC channels)?
 4. Flash: in-package or discrete, exact size (JEDEC ID)?
 5. AC791N variant and pinout; UART and debug-TAP pins reachable on LQFP48?
-6. Does the SoC enumerate on USB with the power switch off (needed for the
-   `USB_KEY` attempt)?
+6. ~~Does the SoC enumerate on USB with the power switch off?~~ No (verified
+   2026-09-06): the unit vanishes from USB when switched off, so the switch is
+   the power-up moment for the `USB_KEY` attempt.
 7. Any GPL-only Dexed code in the stock image (licensing lever)?
 
 ## 5. Immediate next actions (in order)
@@ -98,8 +99,8 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 1. ~~Move the repo.~~ Done 2026-09-06: `~/Developer/mvave-fm1-firmware`,
    pushed to `ip2k/mvave-fm1-open-firmware`.
 2. ~~docs/09 §1–§3.~~ Done 2026-09-06 (`notes/2026-09-06-bench.md`).
-3. Power-switch-off enumeration test (docs/09 §2, last paragraph) and the
-   case-open photo list (docs/09 §5).
+3. ~~Power-switch-off enumeration test.~~ Done 2026-09-06 (no enumeration when
+   off). Still open: the case-open photo list (docs/09 §5).
 4. Build the `USB_KEY` dongle from docs/10 (CI publishes the UF2), then run
    its bench procedure (docs/10 §6). Previously: decide on a `USB_KEY` dongle (buy JieLi's "USB Updater" dongle or build one
    on an RP2040) and, ideally, a JL_AC79_DevKit or a second FM-1 to rehearse on.

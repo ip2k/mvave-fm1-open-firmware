@@ -59,10 +59,11 @@ data lines at power-up **[reported: kagaimiq `isp/usb/usb-key.md`,
   then hands the bus to the PC (USB mux, or a relay, or a manual re-plug within
   the SOF window). The vendor sells exactly this as the "USB Updater" dongle
   (AC6925B-based) — buying one from Taobao/AliExpress is a legitimate shortcut.
-- FM-1 specifics to check: power sequencing (does the SoC boot on USB power
-  with the slide switch off? the key must be present when the ROM starts), any
-  series resistors or ESD parts between the USB-C connector and the SoC, and
-  whether the battery keeps the chip powered so a "power-up" needs the switch.
+- FM-1 specifics to check: any series resistors or ESD parts between the USB-C
+  connector and the SoC. Power sequencing is settled: with the slide switch off
+  the unit does not enumerate on USB power at all [verified 2026-09-06], so the
+  ROM starts when the switch is thrown and the key must already be on the lines
+  at that moment (the dongle keys continuously).
 
 **Why this is the priority:** it needs no soldering, it is the vendor's own
 production flashing path, and the tooling already exists. Its only unknown is
