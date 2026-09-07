@@ -19,6 +19,13 @@ and how far it got. Check these before re-deriving anything.
   flashes, uploads presets) and `fm1_sysex_scanner.py` — **untested on
   hardware**, by the author's own warning.
 - Fuzzing result: the device answers identity item `0x40` only.
+- **Caveats found here (2026-09-06, reported as their issue #2):** the
+  README's offsets describe the *end* of the embedded package (`@JMUA` sits 308
+  bytes before `JLUFW`), so `extract_embedded_firmware()` returns the package
+  tail plus unrelated executable bytes; and `flash_firmware()` uses a
+  `cmd_type`/MSB-flag framing that does not match the device-pull protocol
+  AL-255 captured and Echomatter used on hardware. The identity query is
+  correct.
 - Links: firmware V15 on Aliyun, r/synthdiy teardown thread, esp8266.ru JieLi
   thread, fm1-editor.com, openpatch.es.
 
@@ -60,6 +67,11 @@ experimental firmware and package builders.
   `tools/verify_reflash_record.py`, 27 tests). First non-stock package known to
   have run on an FM-1. Our 2026-09-06 identity capture decodes correctly with
   its parser and not with `main`'s.
+- **Our engagement (2026-09-06):** hardware confirmation of the plain
+  identity parse posted on PR #2 (comment with the byte-exact `FM-1_015`
+  reply and a fixture); V15 analysis on issue #1; **PR #3**
+  (`ip2k/FM-1-RE`, branch `firmware-images-v15`) adds `firmware-images/v15/`
+  in the V14 layout with a fork-side CI run that reproduces the unpack.
 - Toolchain notes: `jieli-linux-toolchains-*` = Clang/LLVM 4.0.1 with
   `pi32`/`pi32v2`/`q32s` backends from `https://pkgman.jieliapp.com/s/linux-toolchain`;
   post-build tools from `.../s/linux-postbuild`. The vendor objdump decodes the

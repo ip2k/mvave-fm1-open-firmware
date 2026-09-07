@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
@@ -28,8 +29,8 @@ static int sof_mode = DEFAULT_SOF_MODE;
 
 static const char *pol_name(int pol) { return pol == POLARITY_DP_CLOCK ? "A(D+clk,D-data)" : "B(D-clk,D+data)"; }
 static uint64_t t0;
-static void logf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-static void logf(const char *fmt, ...) {
+static void dlog(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void dlog(const char *fmt, ...) {
     va_list ap; va_start(ap, fmt);
     printf("[%9llu us] ", (unsigned long long)(time_us_64() - t0));
     vprintf(fmt, ap); printf("\n");
@@ -118,7 +119,7 @@ static bool wait_lines(bool want_dp, bool want_dm, uint32_t timeout_ms) {
 static bool selftest(void) {
     lines_release(); pullups(true); sleep_ms(2);
     bool ok = dp() && dm();
-    logf("SELFTEST %s (D+=%d D-=%d with pull-ups on)", ok ? "ok" : "FAULT: a line reads low - check wiring/pull-ups", dp(), dm());
+    dlog("SELFTEST %s (D+=%d D-=%d with pull-ups on)", ok ? "ok" : "FAULT: a line reads low - check wiring/pull-ups", dp(), dm());
     return ok;
 }
 
@@ -129,20 +130,20 @@ static int key_phase(void) {
     uint64_t start = time_us_64(), last_blink = start;
     bool led_on = false;
     pullups(true); mux_to_dongle(); key_start(pol);
-    logf("KEY start: polarity mode=%s sof_mode=%s", polarity_mode == POLARITY_ALTERNATE ? "alternate" : pol_name(pol),
+    dlog("KEY start: polarity mode=%s sof_mode=%s", polarity_mode == POLARITY_ALTERNATE ? "alternate" : pol_name(pol),
          sof_mode == SOF_MODE_DONGLE ? "dongle-SOF" : "pc-SOF");
     for (;;) {
         key_send_packet(); packets++; in_block++;
         if (gap_sense_ack()) {
-            logf("ACK polarity=%s after %lu packets (%.1f ms)", pol_name(pol), (unsigned long)packets, (time_us_64() - start) / 1000.0);
+            dlog("ACK polarity=%s after %lu packets (%.1f ms)", pol_name(pol), (unsigned long)packets, (time_us_64() - start) / 1000.0);
             return pol;
         }
         if (polarity_mode == POLARITY_ALTERNATE && in_block >= KEY_PACKETS_PER_POLARITY) {
             pol = (pol == POLARITY_DP_CLOCK) ? POLARITY_DM_CLOCK : POLARITY_DP_CLOCK;
             in_block = 0; key_start(pol);
         }
-        if (KEY_TIMEOUT_MS && time_us_64() - start > (uint64_t)KEY_TIMEOUT_MS * 1000) { logf("KEY timeout"); return -1; }
-        if (button_pressed()) { logf("KEY aborted by button"); return -1; }
+        if (KEY_TIMEOUT_MS && time_us_64() - start > (uint64_t)KEY_TIMEOUT_MS * 1000) { dlog("KEY timeout"); return -1; }
+        if (button_pressed()) { dlog("KEY aborted by button"); return -1; }
         if (time_us_64() - last_blink > 500000) { led_on = !led_on; led(led_on); last_blink = time_us_64(); }
     }
 }
@@ -151,20 +152,20 @@ static bool sof_phase(void) {
     pullups(false);                                   // we must see the chip's own D+ pull-up come and go
     lines_release();
     if (!wait_lines(true, false, SOF_DP_HIGH_TIMEOUT_MS)) {
-        logf("SOF: D+ did not go high within %d ms (D+=%d D-=%d)", SOF_DP_HIGH_TIMEOUT_MS, dp(), dm());
+        dlog("SOF: D+ did not go high within %d ms (D+=%d D-=%d)", SOF_DP_HIGH_TIMEOUT_MS, dp(), dm());
         return false;
     }
-    logf("SOF: D+ high (chip pull-up), generating %d us pulses every %d us", SOF_PULSE_CYCLES, SOF_PERIOD_CYCLES);
+    dlog("SOF: D+ high (chip pull-up), generating %d us pulses every %d us", SOF_PULSE_CYCLES, SOF_PERIOD_CYCLES);
     sof_start();
     uint64_t start = time_us_64(); uint32_t low_run = 0, samples = 0;
     while (time_us_64() - start < (uint64_t)SOF_PHASE_TIMEOUT_MS * 1000) {
         sleep_us(SOF_SAMPLE_US); samples++;
         if (!dp()) { if (++low_run * SOF_SAMPLE_US >= SOF_DONE_LOW_MS * 1000) {
-                        logf("SOF: D+ released after ~%lu pulses (%.1f ms) - calibration done", (unsigned long)((time_us_64() - start) / SOF_PERIOD_CYCLES), (time_us_64() - start) / 1000.0);
+                        dlog("SOF: D+ released after ~%lu pulses (%.1f ms) - calibration done", (unsigned long)((time_us_64() - start) / SOF_PERIOD_CYCLES), (time_us_64() - start) / 1000.0);
                         lines_release(); return true; } }
         else low_run = 0;
     }
-    logf("SOF: timeout after %d ms (D+=%d)", SOF_PHASE_TIMEOUT_MS, dp());
+    dlog("SOF: timeout after %d ms (D+=%d)", SOF_PHASE_TIMEOUT_MS, dp());
     lines_release();
     return false;
 }
@@ -190,7 +191,7 @@ int main(void) {
     t0 = time_us_64();
     printf("\nFM-1 USB_KEY dongle (docs/10-usb-key-dongle.md). Key 0x%04X, %d kHz, gap %d us.\n",
            USB_KEY_WORD, KEY_PIO_HZ / KEY_BIT_CYCLES / 1000, KEY_GAP_US);
-    if (button_pressed()) { polarity_mode = POLARITY_DM_CLOCK; logf("button held at boot: fixed polarity %s", pol_name(POLARITY_DM_CLOCK)); while (button_pressed()) sleep_ms(10); }
+    if (button_pressed()) { polarity_mode = POLARITY_DM_CLOCK; dlog("button held at boot: fixed polarity %s", pol_name(POLARITY_DM_CLOCK)); while (button_pressed()) sleep_ms(10); }
 
     for (;;) {
         state_t st = selftest() ? ST_KEY : ST_FAULT;
@@ -201,19 +202,19 @@ int main(void) {
                 st = ST_ACK; blink(3, 100);
                 pio_sm_set_enabled(pio, sm_key, false); lines_release(); pullups(true);
                 if (!wait_lines(true, true, ACK_RELEASE_TIMEOUT_MS))
-                    logf("ACK: lines not released within %d ms (D+=%d D-=%d), continuing", ACK_RELEASE_TIMEOUT_MS, dp(), dm());
-                else logf("ACK: lines released");
-                if (sof_mode == SOF_MODE_PC) { pullups(false); mux_to_pc(); logf("bus -> PC (pc-SOF mode)"); st = ST_DONE; }
+                    dlog("ACK: lines not released within %d ms (D+=%d D-=%d), continuing", ACK_RELEASE_TIMEOUT_MS, dp(), dm());
+                else dlog("ACK: lines released");
+                if (sof_mode == SOF_MODE_PC) { pullups(false); mux_to_pc(); dlog("bus -> PC (pc-SOF mode)"); st = ST_DONE; }
                 else st = sof_phase() ? ST_DONE : ST_FAILED;
                 if (st == ST_DONE) {
                     pullups(false); lines_release(); mux_to_pc();
-                    logf("DONE: bus -> PC. On the Linux PC run: python3 jldevfind.py  (expect a 'UBOOT1.00' mass-storage device)");
+                    dlog("DONE: bus -> PC. On the Linux PC run: python3 jldevfind.py  (expect a 'UBOOT1.00' mass-storage device)");
                 }
             }
         }
         pullups(false); lines_release(); mux_to_pc();
         // Idle until the button is pressed; LED shows the outcome.
-        logf("state=%s - press the button to restart (power-cycle the FM-1 first)",
+        dlog("state=%s - press the button to restart (power-cycle the FM-1 first)",
              st == ST_DONE ? "DONE" : st == ST_FAULT ? "FAULT" : "FAILED");
         while (!button_pressed()) {
             if (st == ST_DONE) { led(true); sleep_ms(50); }
