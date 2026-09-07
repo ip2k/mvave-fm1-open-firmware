@@ -7,7 +7,8 @@ without opening the case. This is Phase 2 of the roadmap (docs/08): nothing
 else may be written to the device until this works (docs/07 §4).
 
 Status 2026-09-06: **specified, implemented and simulated; not yet run against
-an FM-1.** Confidence marks as elsewhere: [reported] = kagaimiq's write-ups,
+an FM-1.** JieLi sells a ready-made equivalent ("JL USB Updater", docs/07 §2.1);
+buy that first. This design is the open, instrumented alternative. Confidence marks as elsewhere: [reported] = kagaimiq's write-ups,
 [inferred] = our reading, [verified] = checked in this repository (host-side
 simulation counts as verification of the *logic*, not of the chip's response).
 

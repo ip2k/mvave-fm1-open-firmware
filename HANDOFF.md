@@ -101,9 +101,11 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 2. ~~docs/09 §1–§3.~~ Done 2026-09-06 (`notes/2026-09-06-bench.md`).
 3. ~~Power-switch-off enumeration test.~~ Done 2026-09-06 (no enumeration when
    off). Still open: the case-open photo list (docs/09 §5).
-4. Build the `USB_KEY` dongle from docs/10 (CI publishes the UF2), then run
-   its bench procedure (docs/10 §6). Previously: decide on a `USB_KEY` dongle (buy JieLi's "USB Updater" dongle or build one
-   on an RP2040) and, ideally, a JL_AC79_DevKit or a second FM-1 to rehearse on.
+4. **Buy JieLi's "JL USB Updater 4.0" dongle** (US$8–18, AliExpress/Taobao;
+   docs/07 §2.1) plus a USB-A-female-to-USB-C-male adapter, and use it with
+   jl-uboot-tool on a Linux PC for read-only dumps (docs/10 §5). The RP2040
+   dongle in docs/10 is the open fallback (UF2 from CI). Ideally also a
+   JL_AC79_DevKit or a second FM-1 to rehearse on.
 5. ~~Contact aroum and AL-255.~~ Done 2026-09-06: AL-255 PR #3 (V15 package),
    comments on their PR #2 and issue #1, aroum issue #2 (docs/04). Watch those
    threads for replies before posting anything further.

@@ -163,6 +163,12 @@ format plus any vendor extensions). openpatch.es is a general DX7 patch tool.
   pain (`pkgman.jieliapp.com`, `/opt/jieli`, missing post-build tools).
 - **Android-JL_OTA / iOS-JL_OTA / JL_OTA_Flutter / HarmonyOS-JL_OTA** —
   Apache-2.0 BLE OTA client SDKs (the FM-1 app references `ble_ota.bin`).
+- **"JL USB Updater" / forced-upgrade dongle (强制升级工具)**, V2.0–V4.0: the
+  vendor's `USB_KEY` dongle, US$8–18 (AliExpress 1005007090348648 and
+  1005009768042266, GoldSupplier p173085127, JieLi's Taobao shop); manual at
+  https://manuals.plus/ae/1005009768042266 (USB 2.0 port, no hubs, target
+  powered while attached, Windows batch tools). Named for built-in-flash chips
+  in the WL83 docs: https://doc.zh-jieli.com/AC792/zh-cn/wifi_video_master/getting_started/preparation/update.html
 - Documentation portals: https://doc.zh-jieli.com/AC79/zh-cn/release_v1.0.3/
   and https://doc.zh-jieli.com/Tools/zh-cn/dev_tools/build_download/ ;
   toolchain downloads http://pkgman.jieliapp.com/doc/all .

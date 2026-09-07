@@ -29,6 +29,32 @@ risk, ranked by how likely each path is to work and how invasive it is.
 The dongle for this is specified, implemented and simulated in docs/10 and
 `dongle/`; the bench procedure is docs/10 §6.
 
+**Buy first, build second [added 2026-09-06].** JieLi sells exactly this
+dongle: the "JL USB Updater" / "JL Forced Download Tool" (强制升级工具),
+versions 2.0–4.0, US$8–18 on AliExpress, Taobao and GoldSupplier (e.g.
+AliExpress item 1005007090348648 "Original JL USB Updater 4.0", GoldSupplier
+p173085127 at US$8). JieLi's own documentation for the sibling WL83/AC792
+family names it as the way into the ROM for chips with built-in flash:
+"对于内置FLASH的芯片型号，可以使用杰理强制升级工具" (for chip models with
+built-in FLASH, use JieLi's forced upgrade tool; obtainable through
+distributors or JieLi's Taobao shop), after which Windows shows
+"WL83 UBOOT1.00 USB Device" [reported]. The AC791N/WL82 is the same
+generation and the mechanism is the mask ROM's, so it should apply, but the
+listings only enumerate the Bluetooth families [inferred]. From the vendor
+manual (manuals.plus/ae/1005009768042266): female side into a **USB 2.0 port
+on the PC**, male side into the target; **no hubs, docks or USB 3.0 ports**;
+the target's MCU must power up while the dongle is attached (our finding that
+the FM-1 only starts when its switch is thrown fits: connect first, then
+switch on); red LED = power, blue LED = download state; V4 has a DIP switch
+(all off for chips with a crystal, which the FM-1 has) and an "update" button.
+The FM-1 needs a **USB-A-female-to-USB-C-male adapter** between the dongle's
+plug and the synth. The vendor software is Windows-only (`isd_download.exe`,
+a *writer*: never run it against the FM-1); for read-only dumps use
+`jl-uboot-tool` on a Linux PC once the chip shows up as `UBOOT1.00`
+(docs/10 §5). The RP2040 design in docs/10 stays as the open, instrumented
+alternative (it logs which polarity worked and every timing step) and is not
+being turned into a PCB unless the vendor tool fails on this chip.
+
 JieLi's mask ROM contains a USB bootloader ("UBOOT1.00"). Besides entering it
 when the flash fails to boot, the ROM watches for a special signal on the USB
 data lines at power-up **[reported: kagaimiq `isp/usb/usb-key.md`,
