@@ -102,7 +102,7 @@ plus AL-255's disassembly. Photos are not copied here; they carry no license.
 
 | Interface | Details |
 | --- | --- |
-| USB, normal mode | VID:PID `4C4A:C755` ("LJ" = JieLi), strings "FM-1 Midi" / "FM-1 Audio" / "Jieli Technology"; USB-MIDI on a 64-byte bulk endpoint pair (EP4) and a UAC1 24-bit stereo isochronous audio interface; serial = chip ID hex. **[verified on the owner's unit 2026-09-06]** USB 2.0 full-speed, `bcdDevice 1.00`, device-level product string `FM-1`, serial `4150353835313708`, five interfaces (0 audio control, 1–2 audio streaming = 2 out / 2 in at 44.1 kHz, 3 audio control, 4 MIDI streaming); CoreMIDI port `FM-1`, CoreAudio device `FM-1 Audio` |
+| USB, normal mode | VID:PID `4C4A:C755` ("LJ" = JieLi), strings "FM-1 Midi" / "FM-1 Audio" / "Jieli Technology"; USB-MIDI on a 64-byte bulk endpoint pair (EP4) and a UAC1 24-bit stereo isochronous audio interface; serial = chip ID hex. **[verified on the owner's unit 2026-09-06]** USB 2.0 full-speed, `bcdDevice 1.00`, device-level product string `FM-1`, a 16-hex-digit serial (the chip ID; not reproduced here), five interfaces (0 audio control, 1–2 audio streaming = 2 out / 2 in at 44.1 kHz, 3 audio control, 4 MIDI streaming); CoreMIDI port `FM-1`, CoreAudio device `FM-1 Audio` |
 | USB, OTA mode | VID:PID `4D4A:4155` ("ota-FM-1"), same MIDI port name; the OTA loader runs from RAM at `0x01C0A800` |
 | UART MIDI | DIN over TRS on the UART at SFR `0x12100`, RX DMA, MIDI-thru merge to TX |
 | BLE-MIDI | GATT service, notifications on ATT handle `0x72`; Classic BT profiles (A2DP/AVRCP/HFP) linked but vestigial |
