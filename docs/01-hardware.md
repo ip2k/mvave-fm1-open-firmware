@@ -134,6 +134,8 @@ plus AL-255's disassembly. Photos are not copied here; they carry no license.
    `PB6/PB7`, or on the USB pins per `sdtap` in the SDK's `isd_config.ini`).
 4. **Display FPC pinout** and panel controller ID (`RDDID` `0x04` over SPI).
 5. **Audio amp** and codec routing (`U5`, `U9`).
-6. **Charger** IC and whether the SoC boots when USB power is applied with the
-   power switch off (matters for the `USB_KEY` recovery attempt).
+6. **Charger** IC. Whether the SoC boots on USB power with the switch off is
+   answered: it does not enumerate at all with the switch off [verified
+   2026-09-06, `notes/2026-09-06-bench.md`], so the switch is the power-up
+   moment for the `USB_KEY` attempt.
 7. **U2/U3** confirm `74HC595`, and how key LEDs are addressed.
