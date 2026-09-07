@@ -103,8 +103,9 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 4. Build the `USB_KEY` dongle from docs/10 (CI publishes the UF2), then run
    its bench procedure (docs/10 §6). Previously: decide on a `USB_KEY` dongle (buy JieLi's "USB Updater" dongle or build one
    on an RP2040) and, ideally, a JL_AC79_DevKit or a second FM-1 to rehearse on.
-5. Contact aroum and AL-255 (GitHub issues) with the V15 findings, the
-   identity-decode data point (docs/03 §2) and the plan.
+5. ~~Contact aroum and AL-255.~~ Done 2026-09-06: AL-255 PR #3 (V15 package),
+   comments on their PR #2 and issue #1, aroum issue #2 (docs/04). Watch those
+   threads for replies before posting anything further.
 
 ## 6. Reference material already gathered (clone these locally)
 
