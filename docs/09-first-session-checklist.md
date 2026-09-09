@@ -126,7 +126,14 @@ OTA-mode enumeration (`4D4A:4155`, "ota-FM-1").
   reference designator (`E*` vs `RW*`/`R*`). Decide encoder vs. pot.
 - `J12` display FPC: pin count, panel model printed on the flex if any.
 - USB-C to SoC: series resistors/ESD parts on D+/D−; which SoC pins they reach.
-- Any pads that look like test points near the SoC (aroum says none; verify).
+- Any pads that look like test points near the SoC (the round bare pads are
+  fiducials). **The unpopulated 3-pin header left of U2**: photograph, measure
+  continuity to SoC pins, and listen passively with a logic analyser at
+  power-up (3.3 V; try 1000000 baud, the SDK's `UTBD` default). Do not drive it.
+- **`U12`**, the bottom-side SOIC-8 near the connectors: read the marking
+  (charger vs. SPI flash decides docs/07 §2.5).
+- The SOT-23 and `R21` under J6: read markings; they sit on the USB path the
+  `USB_KEY` dongle drives (docs/10 §8).
 - Battery: confirm it is disconnected during probing.
 
 ## 6. Where the results go

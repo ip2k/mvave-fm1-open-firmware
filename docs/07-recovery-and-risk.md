@@ -124,8 +124,12 @@ hands; still far better than nothing.
 
 ### 2.5 External flash programmer
 
-Only if the flash is a discrete chip. No SPI flash package was identified in
-the photos, so probably not available.
+Only if the flash is a discrete chip. The photos show one candidate: a
+bottom-side SOIC-8 (`U12`?) near the connectors next to a 0.1 Ω resistor,
+which reads more like a charger IC than a flash [inferred, 2026-09-08]. If
+its marking turns out to be a `25Qxx`-class SPI NOR, a clip and a cheap
+programmer become the simplest recovery path of all; read it on the bench
+(docs/09 §5).
 
 ## 3. Risk register
 

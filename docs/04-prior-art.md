@@ -86,11 +86,25 @@ Sibling M-VAVE product (DX7-style MIDI keyboard) on the same AC791N platform:
 / USR, chip key `980F`, product id `AC791N_STORY`, 1 MB flash, community
 teardown identified AC7911BA (QFN48). Same conventions as the FM-1.
 
-### fm1-editor.com — "M-VAVE FM1 Editor & Librarian"
-Web MIDI editor/librarian; edits voices, imports DX7 `.syx` banks, transfers
-over USB. Blocked from the research sandbox; not yet inspected. Its JavaScript
-is the quickest public source for the FM-1's *patch* SysEx (the DX7 dump
-format plus any vendor extensions). openpatch.es is a general DX7 patch tool.
+### fm1-editor.com — "M-VAVE FM1 Editor & Librarian" (benny-sparra)
+https://github.com/benny-sparra/fm1-dx7-patch-importer — open source (no
+license file), active (2026-09-07). Web MIDI editor/librarian using only
+standard DX7 SysEx, program change and CC; **no vendor messages**. Its
+`docs/fm1-research.md`, `docs/fx-003-hardware-verification.md`,
+`docs/seq-001-findings.md` and `docs/sequencer-fixtures/V15/*.ndjson` are
+careful, confidence-marked hardware notes (effects CC map verified on V15,
+sequencer playback captures, the observation that the unit cannot send banks
+back). `scripts/capture-midi.swift` is a CoreMIDI capture tool for macOS.
+Summary in `notes/2026-09-08-desk-review.md` §2. openpatch.es is a general
+DX7 patch tool.
+
+### M-VAVE official downloads
+https://www.m-vave.com/download lists the V15 `.fwsc` (2026-07-30) as the
+latest PC firmware, V14 updaters for Windows/macOS, release notes and the
+**"FM-1 MIDI CONTROL" guide** (EN/CN; the EN `.docx` is at
+`https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/releaseNote/firmware/FM-1%20MIDI%20EN.docx`):
+channels, CC 0–23 effects map, real-time messages, single-parameter SysEx.
+No V16 as of 2026-09-08.
 
 ### Community threads (not reachable from the sandbox)
 - r/synthdiy teardown: https://www.reddit.com/r/synthdiy/comments/1vgotwe/comment/p3gk1ko/

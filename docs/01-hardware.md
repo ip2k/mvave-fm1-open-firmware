@@ -94,8 +94,8 @@ plus AL-255's disassembly. Photos are not copied here; they carry no license.
 | Crystal | 24 MHz (`24.0…` can next to the SoC) | [verified] photo 1; value [reported] AL-255 |
 | Antenna | a bare **wire** soldered to pad `P1`, labelled `天线` (antenna) | [verified] photo 1 |
 | Passives | `L2 100` buck inductor for the SoC, `L1 4R7`, ferrites `FB1..FB6` on audio | [verified] photo 1 |
-| Unidentified | `U9`, `U5` (SOIC-8, near the jacks — audio amp / op-amp candidates), `U11` (SOT-23-6), white 4-pin `OCIC P2362 2619` near the jacks, `Q2`, `Q4`, `D1..D57` | [verified] present; function unknown |
-| Debug access | **none**: no JTAG/UART header, no test pads, no recovery button | [reported] aroum README §1.2; photos consistent |
+| Unidentified | `U9`, `U5` (SOIC-8, near the jacks — audio amp / op-amp candidates), `U11` (SOT-23-6), `Q2`, `Q4`, `D1..D57`; a **3-pin SOT-23 plus `R21` on the USB data/VBUS path right under J6** [verified present]; a **bottom-side SOIC-8 (`U12`?) near the connectors with `R35`/`R36` and a 0.1 Ω `R100`** — charger IC [inferred] or, if it is an SPI NOR flash, an external-programmer recovery path (docs/07 §2.5): read its marking. `PC1`, the white 4-pin `OCIC P2362`, is most likely the **MIDI IN optocoupler** [inferred] | `notes/2026-09-08-desk-review.md` |
+| Debug access | **no populated header**, no recovery button. But photo 3 shows an **unpopulated 3-pin through-hole header** left of U2 (below the SoC), unlabelled, traces toward the SoC: candidate factory UART/debug pins [verified present 2026-09-08; function unknown]. The round bare pads near the SoC are fiducials, not test points | aroum README §1.2 said none; `notes/2026-09-08-desk-review.md` |
 | Reset | `RESET=PB01_08_0`: hold PB01 low for 8 s to reset (long-press power path). **Not** a recovery input | [reported] AL-255 decode of `isd_config.ini` |
 
 ## 4. Interfaces as the stock firmware exposes them [reported: AL-255 `06-usb.md`, `05-midi.md`, `11-ota-protocol.md`]
@@ -123,10 +123,12 @@ plus AL-255's disassembly. Photos are not copied here; they carry no license.
 
 ## 6. Open questions for the bench
 
-1. **Knobs**: which of the 8 are encoders and which are potentiometers? Count
-   pins and look for detents; the stock firmware's two encoders + two ADC
-   channels do not add up to eight, so some knobs may be scanned as matrix
-   switches or via the two 74HC595s' neighbours.
+1. **Knobs**: from the photos, `RW1` (top-right of the 2×2 block) is a
+   potentiometer with an index line and the other seven carry `E` designators
+   and EC11-style 3+2 pins, i.e. push encoders [inferred 2026-09-08]. Confirm
+   on the bench and reconcile with the firmware's two hardware quadrature
+   decoders + two ADC channels (the remaining encoders are probably polled in
+   the key-matrix scan).
 2. **Flash**: in-package or discrete? JEDEC ID and size from mask-ROM USB mode.
 3. **Exact AC791N variant** and therefore pinout: match the LQFP48 pins to the
    AC7911B datasheet; locate USB D+/D−, the UART candidates (`PB00`, `PB05`,
@@ -139,3 +141,8 @@ plus AL-255's disassembly. Photos are not copied here; they carry no license.
    2026-09-06, `notes/2026-09-06-bench.md`], so the switch is the power-up
    moment for the `USB_KEY` attempt.
 7. **U2/U3** confirm `74HC595`, and how key LEDs are addressed.
+8. **`U12`** (bottom SOIC-8 near the connectors): charger or external flash?
+   Read the marking.
+9. **The 3-pin header** left of U2: continuity to which SoC pins; any UART
+   output at power-up (3.3 V, `UTBD=1000000` is the SDK default)? Passive
+   probing only.

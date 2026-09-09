@@ -151,11 +151,32 @@ checked and is not claimed here; it is listed as a research item in docs/08.
   with running status; MIDI-thru to the UART.
 - Note on/off with velocity, 12-voice allocation/stealing, CC 1/2/4/64, 14-bit
   pitch bend; program change from `FM-1_014`; CC control of parameters from V15.
+- **Official MIDI map [reported: M-VAVE "FM-1 MIDI EN" guide, V14/V15;
+  `notes/2026-09-08-desk-review.md` §3]:** note channel defaults to Omni;
+  Program Change `0–127` → Voice 001–128; channel aftertouch; **FX channel
+  defaults to MIDI channel 2** with CC 0–23 in six groups of four (Filter:
+  Switch, Type LPF/BPF/HPF, Cutoff 0–107, Q 0–10; Reverb: Switch, Type
+  Room/Hall/Plate, Decay, Mix; Delay: Switch, Decay, Rate, Mix; Distortion:
+  Switch, Gain, Tone, Level; Chorus and Phaser: Switch, Freq, Depth, Mix;
+  0–100 unless stated); **System Real-Time** `F8` clock, `FA` start from
+  step 0, `FB` = start, `FC` stop. benny-sparra confirmed CC 0/2 on a V15
+  unit. Sending CC 1 on the FX channel changes Filter Type, not modulation.
+- **The FM-1 transmits MIDI** [reported: benny-sparra's V15 fixtures]: key
+  presses and sequencer playback go out as Note On/Off over USB-MIDI; our
+  "no spontaneous traffic" applies to an idle unit only.
+- **V15 sequencer** [reported: photographed stock UI, benny-sparra]: 16 steps,
+  pages `1/3` Pattern · Clear · Chain · Step, `2/3` Voice · Rate · Tempo ·
+  Gate, `3/3` Swing · Sync · Transpose; V13's internal record held 10
+  notes + 10 velocities per 32-byte slot (AL-255), so the record format
+  changed in V15.
 - **No read-back over MIDI [verified 2026-09-06]**: the device answers nothing
   but the vendor identity query — no reply to DX7 dump requests
   (`F0 43 20 09 F7`, `F0 43 20 00 F7`), none to the universal identity request
   (`F0 7E 7F 06 01 F7`), no spontaneous traffic (no clock, no active sensing).
   Patch retrieval therefore needs the UI-triggered dump, if any [inferred].
+  fm1-editor.com's author states the same: "the FM1 accepts voices and banks
+  but cannot send its stored banks back"; after a bank dump the unit shows a
+  bank-selection screen and K1–K4 pick destination A–D [reported].
 - **DX7 SysEx**: 32-voice bulk dump `F0 43 0n 09 20 00 … (4096 bytes) … F7`
   with checksum, single voice `F0 43 0n 00 1B …`, 7-byte parameter changes into
   the edit buffer. This is how fm1-editor.com and DX7 `.syx` banks work.

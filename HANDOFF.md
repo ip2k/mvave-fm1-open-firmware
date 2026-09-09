@@ -85,10 +85,14 @@ original conversation. Read this first, then `README.md`, then `docs/`.
 1. Does `USB_KEY` reach the AC791N's mask ROM through the FM-1's USB-C port,
    and with which clock/data polarity and power sequence?
 2. What does the step-1 verifier compare that makes rebuilt packages fail?
-3. Knobs: which of the eight are encoders and which pots (stock scans 2
-   encoders + 2 ADC channels)?
+3. Knobs: photos suggest `RW1` is a potentiometer and the other seven are
+   push encoders (2026-09-08); confirm and reconcile with the firmware's
+   2 decoders + 2 ADC channels.
 4. Flash: in-package or discrete, exact size (JEDEC ID)?
 5. AC791N variant and pinout; UART and debug-TAP pins reachable on LQFP48?
+   Photo 3 shows an **unpopulated 3-pin header** left of U2 (candidate UART)
+   and a bottom-side SOIC-8 `U12` (charger or external flash?) — both are
+   bench items in docs/09 §5 (2026-09-08).
 6. ~~Does the SoC enumerate on USB with the power switch off?~~ No (verified
    2026-09-06): the unit vanishes from USB when switched off, so the switch is
    the power-up moment for the `USB_KEY` attempt.
